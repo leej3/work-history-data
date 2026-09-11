@@ -16,5 +16,5 @@ jobs:
         with:
           username: leej3
           project-url: https://github.com/orgs/con/projects/10
-          recency: "73"
+          recency: "2"
           token: ${{ secrets.GH_PAT }}
