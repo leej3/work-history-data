@@ -1,0 +1,20 @@
+name: Update work history data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  Update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: CodyCBakerPhD/historia-action@v0
+        with:
+          username: leej3
+          project-url: https://github.com/orgs/con/projects/10
+          recency: "2"
+          token: ${{ secrets.GH_PAT }}
