@@ -12,9 +12,16 @@ jobs:
       contents: write
 
     steps:
-      - uses: CodyCBakerPhD/historia-action@v0
+      - uses: CodyCBakerPhD/historia-action@v6
         with:
           username: leej3
           project-url: https://github.com/orgs/con/projects/10
           recency: "2"
+          token: ${{ secrets.GH_PAT }}
+          rate-limit-label: ""
+
+      - uses: CodyCBakerPhD/historia-action/project-update-dates@v6
+        with:
+          url: https://github.com/orgs/con/projects/10
+          recency: "7"
           token: ${{ secrets.GH_PAT }}
