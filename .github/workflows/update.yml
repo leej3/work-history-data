@@ -2,6 +2,11 @@ name: Update work history data
 
 on:
   workflow_dispatch:
+    inputs:
+      recency:
+        description: Number of recent days to refresh
+        default: "2"
+        required: false
   schedule:
     - cron: "0 0 * * *"
 
@@ -10,18 +15,39 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
 
     steps:
       - uses: CodyCBakerPhD/historia-action@v6
+        id: collect
         with:
           username: leej3
           project-url: https://github.com/orgs/con/projects/10
-          recency: "2"
+          recency: ${{ inputs.recency || '2' }}
           token: ${{ secrets.GH_PAT }}
           rate-limit-label: ""
 
       - uses: CodyCBakerPhD/historia-action/project-update-dates@v6
         with:
           url: https://github.com/orgs/con/projects/10
-          recency: "7"
+          recency: ${{ inputs.recency || '7' }}
           token: ${{ secrets.GH_PAT }}
+
+      - name: Report collection failures or incomplete runs
+        if: ${{ always() && (failure() || steps.collect.outputs.rate-limited == 'true') }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'Historia needs attention';
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              ...context.repo, state: 'open', creator: 'github-actions[bot]'
+            });
+            if (!issues.some(issue => issue.title === title)) {
+              await github.rest.issues.create({
+                ...context.repo, title,
+                body: '**AI-generated draft — not reviewed by John**\n\n' +
+                  '@leej3 A collection or date-refresh step failed, or collection hit an API rate limit. ' +
+                  'Review the run and use a wider manual refresh window if needed.\n\n' +
+                  `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+              });
+            }
